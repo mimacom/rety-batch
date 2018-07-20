@@ -7,7 +7,7 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/openjdk:8-jdk-browsers
+      - image: circleci/openjdk:8-jdk
       
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -17,6 +17,8 @@ jobs:
     working_directory: ~/repo
 
     environment:
+      # Customize the JVM maximum heap limit
+      MAVEN_OPTS: -Xmx3200m
     
     steps:
       - checkout
@@ -24,6 +26,9 @@ jobs:
       - restore_cache:
           keys:
             - tfenv
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
 
       - run:
           name: Install dependencies
@@ -38,13 +43,17 @@ jobs:
           paths:
             - ~/.tfenv
 
+      - run: mvn dependency:go-offline
       - run: echo "run"
 
       - save_cache:
-          key: tfenv
           paths:
-            - ~/.tfenv
-        
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+
+      # run tests!
+      - run: mvn integration-test
+
       - deploy:
           name: Deploy Bulktrade Portal
           command: |

@@ -1,4 +1,4 @@
-package com.mimacom.batch.rety;
+package com.mimacom.rety.batch;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
